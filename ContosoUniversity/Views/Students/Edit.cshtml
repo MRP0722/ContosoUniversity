@@ -1,0 +1,159 @@
+﻿@{
+    Layout = null;
+}
+
+@model ContosoUniversity.Models.Student
+<!DOCTYPE html>
+
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>Edit</title>
+    <link rel="stylesheet" href="~/lib/layui/css/layui.css">
+    <script src="/lib/jquery/dist/jquery.min.js" type="text/javascript"></script>
+    <script src="/lib/layui/layui.js" type="text/javascript"></script>
+    <script type="text/javascript">
+        function LayerMsg(msg) {
+            layui.use('layer', function () {
+                var layer = layui.layer;
+                layer.msg(msg);
+            });
+        }
+
+        function CloseLayer() {
+            layui.use('layer', function () {
+                var layer = layui.layer;
+                var index = parent.layer.getFrameIndex(window.name);
+                parent.layer.close(index);
+            });
+        }
+        function GetStudent() {
+            $.ajax({
+                type: 'post',
+                dataType: 'json',
+                data: getParameters(),
+                url: '/Students/Edit',
+                success: function (res) {
+                    if (res.errcode == 0) {
+                        BindStudent(res.data);
+                    }
+                    else {
+                        layerMsg('fail');
+                    }
+                },
+                error: function (res) {
+                    layerMsg('请求失败');
+                }
+            });
+        }
+
+        function BindStudent(data) {
+            $('#lastName').val(data.LastName);
+            $('#firstMidName').val(data.FirstMidName);
+            $('#enrollmentDate').val(data.EnrollmentDate);
+            $('#hid').val(data.ID);
+        }
+
+        function GetParameters() {
+            var form = $('#__AjaxAntiForgeryForm');
+            var token = $('input[name="__RequestVerificationToken"]', form).val();
+            var params = {
+                __RequestVerificationToken: token,
+                ID: $('#hid').val(),
+                LastName: $('#lastName').val(),
+                FirstMidName: $('#firstMidName').val(),
+                EnrollmentDate: $('#enrollmentDate').val()
+            };
+            return params;
+        }
+
+        function SaveStudent() {
+            $.ajax({
+                type: 'post',
+                dataType: 'json',
+                data: GetParameters(),
+                url: '/Students/Update',
+                success: function (res) {
+                    if (res.errcode == 0) {
+                        LayerMsg('success');
+                    }
+                    else {
+                        LayerMsg('fail');
+                    }
+                },
+                error: function (res) {
+                    LayerMsg('请求失败');
+                }
+            });
+        }
+
+        function DateSelectorInit() {
+            layui.use('laydate', function () {
+                var laydate = layui.laydate;
+
+                //执行一个laydate实例
+                laydate.render({
+                    elem: '#enrollmentDate' //指定元素
+                });
+            });
+        }
+
+        function PageEventInit() {
+            $('#btn-save').on('click', function () {
+                SaveStudent();
+            });
+        }
+
+        $(function () {
+            DateSelectorInit();
+            PageEventInit();
+            //GetStudent();
+        });
+
+    </script>
+</head>
+<body>
+    @using (Html.BeginForm(null, null, FormMethod.Post, new { id = "__AjaxAntiForgeryForm" }))
+    {
+        @Html.AntiForgeryToken()
+        @Html.Hidden("hid",Model.ID,null)
+        <input type="hidden" id="hid" />
+        <div class="layui-form" style="padding:10px 10px 0px 10px">
+            <div class="layui-form-item">
+                <label class="layui-form-label">姓:</label>
+                <div class="layui-input-block">
+                    @Html.TextBox("lastName", Model.LastName, "", new { @class = "layui-input", placeholder = "请输入", autocomplete = "off" })
+                    @*<input id="lastName" type="text" name="lastName" placeholder="请输入" autocomplete="off" class="">*@
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">名:</label>
+                <div class="layui-input-block">
+                    @Html.TextBox("firstMidName", Model.FirstMidName, "", new { @class = "layui-input", placeholder = "请输入", autocomplete = "off" })
+                    @*<input id="firstMidName" type="text" name="firstMidName" placeholder="请输入" autocomplete="off" class="layui-input">*@
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">入学时间:</label>
+                <div class="layui-input-block">
+                    @Html.TextBox("enrollmentDate", Model.EnrollmentDate.ToString("yyyy-MM-dd"), "", new { @class = "layui-input", placeholder = "请输入", autocomplete = "off" })
+                    @*<input id="enrollmentDate" type="text" name="enrollmentDate" placeholder="请输入" autocomplete="off" class="layui-input">*@
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">备注:</label>
+                <div class="layui-input-block">
+                    @Html.TextBox("enrollments", Model.Enrollments, "", new { @class = "layui-input", placeholder = "请输入", autocomplete = "off" })
+                    @*<input id="enrollmentDate" type="text" name="enrollmentDate" placeholder="请输入" autocomplete="off" class="layui-input">*@
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <div class="layui-input-block">
+                    <button class="layui-btn" lay-submit lay-filter="*" type="button" id="btn-save">修改</button>
+                    <button type="button" class="layui-btn layui-btn-primary" onclick="CloseLayer()">取消</button>
+                </div>
+            </div>
+        </div>
+    }
+</body>
+</html>

@@ -1,0 +1,115 @@
+﻿@{
+    ViewData["Title"] = "Index";
+}
+<!--Student-->
+<div class="layui-col-md12">
+    <div class="layui-card">
+        <div class="layui-card-header">@ViewData["Title"]</div>
+        <div class="layui-card-body">
+            <div class="layui-btn-group">
+                <button class="layui-btn" id="btn-add">增加</button>
+                <button class="layui-btn" id="btn-edit">编辑</button>
+                <button class="layui-btn" id="btn-del">删除</button>
+            </div>
+            <table id="demo" lay-filter="test"></table>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    var GlobalParams = {
+    };
+
+    function LayerMsg(msg) {
+        layui.use('layer', function () {
+            var layer = layui.layer;
+            layer.msg(msg);
+        });
+    }
+
+    function ShowCreateContent(url) {
+        layui.use('layer', function () {
+            var layer = layui.layer;
+            layer.open({
+                id:'studentCreate',
+                type: 2,
+                title:'创建学生',
+                area: ['700px', '100%'],
+                fixed: false, //不固定
+                maxmin: false,
+                shade: [0.3, '#000'],
+                offset: 'r',
+                closeBtn: 0,
+                shadeClose: false,
+                //anim:3,
+                content: url
+            });
+        });
+    }
+
+    function LoadTableList() {
+        layui.use('table', function () {
+            var table = layui.table;
+            //第一个实例
+            table.render({
+                elem: '#demo',
+                height: 312,
+                id:'id',
+                url: '/Students/List', //数据接口
+                parseData: function (res) { //res 即为原始返回的数据
+                    return {
+                        "code": 0, //解析接口状态
+                        "msg": '', //解析提示文本
+                        "count": res.length, //解析数据长度
+                        "data": res //解析数据列表
+                    };
+                },
+                page: true, //开启分页
+                cols: [[ //表头
+                    { type: 'checkbox' },
+                    { field: 'id', title: 'ID', width: 80, sort: true },
+                    { field: 'lastName', title: '姓', width: 150 },
+                    { field: 'firstMidName', title: '名', width: 150, sort: true },
+                    { field: 'enrollmentDate', title: '入学时间', width: 200, sort: true }
+                ]]
+            });
+            GlobalParams['table'] = table;
+        });
+    }
+
+    function GetTableCheckStatus() {
+        var checkStatus;
+        //checkStatus=GlobalParams.table.checkStatus('id');
+        layui.use('table', function () {
+            var table = layui.table;
+            checkStatus = table.checkStatus('id');
+        });
+            return checkStatus;
+    }
+
+    function PageEventInit() {
+        $('#btn-add').on('click', function () {
+            ShowCreateContent('/Students/Create');
+        });
+        $('#btn-edit').on('click', function () {
+            var checkStatus = GetTableCheckStatus();
+            if (checkStatus.data.length == 1) {
+                ShowCreateContent('/Students/Edit/' + checkStatus.data[0].id);
+            }
+            else if (checkStatus.data.length > 1) {
+                LayerMsg('只能选择一项进行编辑');
+            }
+            else {
+                LayerMsg('请选择一项进行编辑');
+            }
+        });
+    }
+
+    $(function () {
+        LoadTableList();
+        PageEventInit();
+       
+});
+</script>
+
+

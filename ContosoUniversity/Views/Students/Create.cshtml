@@ -1,0 +1,103 @@
+﻿
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>Create</title>
+    <link rel="stylesheet" href="~/lib/layui/css/layui.css">
+    <script src="/lib/jquery/dist/jquery.min.js" type="text/javascript"></script>
+    <script src="/lib/layui/layui.js" type="text/javascript"></script>
+    <script type="text/javascript">
+        function layerMsg(msg) {
+            layui.use('layer', function () {
+                var layer = layui.layer;
+                layer.msg(msg);
+            });
+        }
+        function closeLayer() {
+            layui.use('layer', function () {
+                var layer = layui.layer;
+                var index = parent.layer.getFrameIndex(window.name);
+                parent.layer.close(index);
+            });
+        }
+        function getParameters() {
+            var form = $('#__AjaxAntiForgeryForm');
+            var token = $('input[name="__RequestVerificationToken"]', form).val();
+            var params = {
+                __RequestVerificationToken: token, 
+                LastName: $('#lastName').val(),
+                FirstMidName: $('#firstMidName').val(),
+                EnrollmentDate: $('#enrollmentDate').val()
+            };
+            return params;
+        }
+        function saveStudent() {
+            $.ajax({
+                type: 'post',
+                dataType: 'json',
+                data: getParameters(),
+                url: '/Students/Save',
+                success: function (res) {
+                    layerMsg('success');
+                },
+                error: function (res) {
+                    layerMsg('请求失败');
+                }
+            });
+        }
+        $(function () {
+            layui.use('laydate', function () {
+                var laydate = layui.laydate;
+
+                //执行一个laydate实例
+                laydate.render({
+                    elem: '#enrollmentDate' //指定元素
+                });
+            });
+            $('#btn-save').on('click', function () {
+                saveStudent();
+            });
+        });
+
+    </script>
+</head>
+<body>
+    @using (Html.BeginForm(null, null, FormMethod.Post, new { id = "__AjaxAntiForgeryForm" }))
+    {
+        @Html.AntiForgeryToken()
+
+        <div class="layui-form" style="padding:10px 10px 0px 10px">
+            <div class="layui-form-item">
+                <label class="layui-form-label">姓:</label>
+                <div class="layui-input-block">
+                    <input id="lastName" type="text" name="lastName" placeholder="请输入" autocomplete="off" class="layui-input">
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">名:</label>
+                <div class="layui-input-block">
+                    <input id="firstMidName" type="text" name="firstMidName" placeholder="请输入" autocomplete="off" class="layui-input">
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">入学时间:</label>
+                <div class="layui-input-block">
+                    <input id="enrollmentDate" type="text" name="enrollmentDate" placeholder="请输入" autocomplete="off" class="layui-input">
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <div class="layui-input-block">
+                    <button class="layui-btn" lay-submit lay-filter="*" type="button" id="btn-save">立即提交</button>
+                    <button type="button" class="layui-btn layui-btn-primary" onclick="closeLayer()">取消</button>
+                </div>
+            </div>
+        </div>
+    }
+</body>
+</html>
